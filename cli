@@ -34,20 +34,12 @@ namespace App\Controller;
 
 use Lil\Controller;
 
-class {$name}Controller extends Controller {
-    public function index() {
-        // Your code here
-    }
-
-    public function show(\$id) {
-        // Your code here
-    }
-
-    // Add other controller methods here
+class {$name} extends Controller {
+    // Add controller methods here
 }
 
 ";
-        file_put_contents(__DIR__ . "/controllers/{$name}Controller.php", $content);
+        file_put_contents(__DIR__ . "/controllers/{$name}.php", $content);
         echo "Controller {$name} created successfully.\n";
         break;
 

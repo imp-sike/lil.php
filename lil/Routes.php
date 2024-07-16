@@ -10,12 +10,26 @@ class Routes
 
     public static function get($path, $func, $name, $middlewares = [])
     {
-        self::$routes[] = ["path" => ConfigClass::$base_uri . $path, "func" => $func, "name" => $name, "method" => "GET", "middlewares" => $middlewares];
+        self::addRoute('GET', $path, $func, $name, $middlewares);
     }
 
     public static function post($path, $func, $name, $middlewares = [])
     {
-        self::$routes[] = ["path" => ConfigClass::$base_uri . $path, "func" => $func, "name" => $name, "method" => "POST", "middlewares" => $middlewares];
+        self::addRoute('POST', $path, $func, $name, $middlewares);
+    }
+
+    private static function addRoute($method, $path, $func, $name, $middlewares)
+    {
+        // Determine if $func is an anonymous function or a class method
+        $isFunction = is_callable($func);
+
+        self::$routes[] = [
+            "path" => ConfigClass::$base_uri . $path,
+            "func" => $isFunction ? $func : [new $func[0], $func[1]],
+            "name" => $name,
+            "method" => $method,
+            "middlewares" => $middlewares,
+        ];
     }
 
     public static function dispatch($url)
@@ -40,9 +54,6 @@ class Routes
                     http_response_code(403); // Forbidden status
                     echo "CSRF token validation failed";
                     return;
-                } else {
-                    // TODO session unsetting results in error
-                    // see @imp-sike
                 }
             }
 
@@ -61,16 +72,16 @@ class Routes
 
                 // Call the route handler with parameters
                 $params = array_values($matches); // Ensure numeric array keys for compatibility
-                $routeMiddlewares = $route["middlewares"]; // Assuming $route is defined somewhere
+                $routeMiddlewares = $route["middlewares"];
 
                 foreach ($routeMiddlewares as $middlewareClass) {
                     $middleware = new $middlewareClass();
                     $result = $middleware->Run();
-                    if($result == false) {
+                    if ($result === false) {
                         exit();
                     }
                 }
-                
+
                 call_user_func_array($route['func'], $params);
                 return;
             }
@@ -80,6 +91,7 @@ class Routes
         http_response_code(404);
         echo "404 Not Found";
     }
+
     public static function route($name, $args = [])
     {
         foreach (self::$routes as $route) {
