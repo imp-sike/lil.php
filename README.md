@@ -1,5 +1,5 @@
 # LilPHP
-A minimal PHP framework that is inspired heavily from laravel.
+A minimal, straight-forward PHP framework that is inspired heavily from laravel.
 
 ### Features
 1. MVC Architecture

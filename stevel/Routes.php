@@ -8,14 +8,14 @@ class Routes
 {
     private static $routes = [];
 
-    public static function get($path, $func, $name)
+    public static function get($path, $func, $name, $middlewares = [])
     {
-        self::$routes[] = ["path" => ConfigClass::$base_uri . $path, "func" => $func, "name" => $name, "method" => "GET"];
+        self::$routes[] = ["path" => ConfigClass::$base_uri . $path, "func" => $func, "name" => $name, "method" => "GET", "middlewares" => $middlewares];
     }
 
-    public static function post($path, $func, $name)
+    public static function post($path, $func, $name, $middlewares = [])
     {
-        self::$routes[] = ["path" => ConfigClass::$base_uri . $path, "func" => $func, "name" => $name, "method" => "POST"];
+        self::$routes[] = ["path" => ConfigClass::$base_uri . $path, "func" => $func, "name" => $name, "method" => "POST", "middlewares" => $middlewares];
     }
 
     public static function dispatch($url)
@@ -61,6 +61,16 @@ class Routes
 
                 // Call the route handler with parameters
                 $params = array_values($matches); // Ensure numeric array keys for compatibility
+                $routeMiddlewares = $route["middlewares"]; // Assuming $route is defined somewhere
+
+                foreach ($routeMiddlewares as $middlewareClass) {
+                    $middleware = new $middlewareClass();
+                    $result = $middleware->Run();
+                    if($result == false) {
+                        exit();
+                    }
+                }
+                
                 call_user_func_array($route['func'], $params);
                 return;
             }
@@ -70,11 +80,6 @@ class Routes
         http_response_code(404);
         echo "404 Not Found";
     }
-
-
-
-
-
     public static function route($name, $args = [])
     {
         foreach (self::$routes as $route) {

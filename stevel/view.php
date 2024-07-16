@@ -52,9 +52,9 @@ function csrf()
     }
 
     // Generate CSRF token if not set
-    // if (!isset($_SESSION['csrf_token'])) {
+    if (!isset($_SESSION['csrf_token'])) {
         $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-    // }
+    }
 
     // Return the CSRF token input field
     return '<input type="hidden" name="csrf_token" value="' . $_SESSION['csrf_token'] . '">';
