@@ -14,7 +14,7 @@ switch ($command) {
 
 namespace App\Model;
 
-use Stevel\Model;
+use Lil\Model;
 
 class {$name} extends Model {
     protected \$table = '{$table}';
@@ -22,18 +22,54 @@ class {$name} extends Model {
     protected \$fillable = [];
 }
 
-        ";
+";
         file_put_contents(__DIR__ . "/models/{$name}.php", $content);
         echo "Model {$name} created successfully.\n";
         break;
+
     case 'make:controller':
+        $content = "<?php
 
+namespace App\Controller;
+
+use Lil\Controller;
+
+class {$name}Controller extends Controller {
+    public function index() {
+        // Your code here
+    }
+
+    public function show(\$id) {
+        // Your code here
+    }
+
+    // Add other controller methods here
+}
+
+";
+        file_put_contents(__DIR__ . "/controllers/{$name}Controller.php", $content);
+        echo "Controller {$name} created successfully.\n";
         break;
+
     case 'make:middleware':
+        $content = "<?php
 
+namespace App\Middleware;
+
+use Lil\Middleware;
+
+class {$name}Middleware implements Middleware {
+    public function Run() {
+        // Your middleware logic here
+    }
+}
+
+";
+        file_put_contents(__DIR__ . "/middlewares/{$name}Middleware.php", $content);
+        echo "Middleware {$name} created successfully.\n";
         break;
+
     default:
         echo "Command not recognized.\n";
         exit(1);
 }
-

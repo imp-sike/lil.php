@@ -71,7 +71,8 @@
 <body>
     <h1>Edit Blog</h1>
     <div class="form-container">
-        <form action="<?= route('admin.blog.update', ["id" => $data["blog"]["id"]]); ?>" method="POST">
+        <form action="<?= route('admin.blog.update', ["id" => $data["blog"]["id"]]); ?>" method="POST"
+            enctype="multipart/form-data">
             <?= csrf(); ?>
             <div class="form-group">
                 <label for="title">Title:</label>
@@ -80,6 +81,10 @@
             <div class="form-group">
                 <label for="description">Description:</label>
                 <textarea id="description" name="description" required><?= $data["blog"]["description"]; ?></textarea>
+            </div>
+            <div class="form-group">
+                <label for="image">Image:</label>
+                <input type="file" id="image" name="image" required>
             </div>
             <div class="form-group">
                 <button type="submit" class="btn-submit">Edit Blog</button>

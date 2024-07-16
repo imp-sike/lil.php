@@ -59,3 +59,70 @@ function csrf()
     // Return the CSRF token input field
     return '<input type="hidden" name="csrf_token" value="' . $_SESSION['csrf_token'] . '">';
 }
+
+function file_upload($upload_dir, $input_name, $allowed_types, $max_size) {
+    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+        if (isset($_FILES[$input_name]) && $_FILES[$input_name]['error'] == 0) {
+            $filename = $_FILES[$input_name]['name'];
+            $filetype = $_FILES[$input_name]['type'];
+            $filesize = $_FILES[$input_name]['size'];
+
+            // Verify MIME type
+            if (!in_array($filetype, $allowed_types)) {
+                return false; // Invalid file format
+            }
+
+            // Verify file size
+            if ($filesize > $max_size) {
+                return false; // File size exceeds the allowed limit
+            }
+
+            // Ensure upload directory exists
+            if (!is_dir($upload_dir)) {
+                mkdir($upload_dir, 0777, true);
+            }
+
+            // Generate a unique file name
+            $ext = pathinfo($filename, PATHINFO_EXTENSION);
+            $new_filename = uniqid() . '.' . $ext;
+
+            // Move uploaded file to the specified directory
+            $upload_path = $upload_dir . $new_filename;
+            if (move_uploaded_file($_FILES[$input_name]["tmp_name"], $upload_path)) {
+                return $upload_path; // Return the path where the file is saved
+            } else {
+                return false; // Failed to move uploaded file
+            }
+        } else {
+            return false; // File upload error
+        }
+    }
+    return false; // Not a POST request
+}
+
+function file_delete($file_path) {
+    if (file_exists($file_path)) {
+        if (unlink($file_path)) {
+            return true; // File successfully deleted
+        } else {
+            return false; // Error deleting file
+        }
+    } else {
+        return false; // File does not exist
+    }
+}
+
+function file_update($file, $destination, $allowedTypes, $maxSize, $oldFilePath = null) {
+    if (isset($file) && $file['error'] == 0) {
+        $newFilePath = file_upload($destination, $file['name'], $allowedTypes, $maxSize);
+        if ($newFilePath) {
+            if ($oldFilePath) {
+                file_delete($oldFilePath);
+            }
+            return $newFilePath;
+        } else {
+            throw new Exception("File upload failed.");
+        }
+    }
+    return $oldFilePath;
+}
