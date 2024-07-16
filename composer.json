@@ -1,0 +1,18 @@
+{
+    "name": "imp-sike/lilphp",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "App\\Config\\": "configs/",
+            "App\\Controller\\": "controllers/",
+            "App\\Middleware\\": "middlewares/",
+            "App\\Model\\": "models/",
+            "App\\Routes\\": "routes/",
+            "App\\Utils\\": "utils/",
+            "Stevel\\": "stevel/"
+        }
+    },
+    "require": {
+        "php": "^7.3|^8.0"
+    }
+}

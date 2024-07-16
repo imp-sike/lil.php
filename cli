@@ -1,0 +1,39 @@
+<?php
+if ($argc < 3) {
+    echo "Usage: php cli.php make:{command} {name}\n";
+    exit(1);
+}
+
+$command = $argv[1];
+$name = $argv[2];
+$table = strtolower($argv[2]);
+
+switch ($command) {
+    case 'make:model':
+        $content = "<?php
+
+namespace App\Model;
+
+use Stevel\Model;
+
+class {$name} extends Model {
+    protected \$table = '{$table}';
+
+    protected \$fillable = [];
+}
+
+        ";
+        file_put_contents(__DIR__ . "/models/{$name}.php", $content);
+        echo "Model {$name} created successfully.\n";
+        break;
+    case 'make:controller':
+
+        break;
+    case 'make:middleware':
+
+        break;
+    default:
+        echo "Command not recognized.\n";
+        exit(1);
+}
+
