@@ -2,7 +2,7 @@
 use App\Middleware\BearerTokenCheckMiddleware;
 use App\Middleware\SampleMiddleware;
 use App\Model\Blog;
-use Stevel\Routes;
+use Lil\Routes;
 
 Routes::get("/", function () {
     return view('index');

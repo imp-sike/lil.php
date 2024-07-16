@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'imp-sike/lilphp',
-        'pretty_version' => '1.0.0+no-version-set',
-        'version' => '1.0.0.0',
-        'reference' => null,
+        'pretty_version' => 'dev-main',
+        'version' => 'dev-main',
+        'reference' => 'cb3fa6d9ea95ee67d8f950bb1afd2dcd59edbe90',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,9 +11,9 @@
     ),
     'versions' => array(
         'imp-sike/lilphp' => array(
-            'pretty_version' => '1.0.0+no-version-set',
-            'version' => '1.0.0.0',
-            'reference' => null,
+            'pretty_version' => 'dev-main',
+            'version' => 'dev-main',
+            'reference' => 'cb3fa6d9ea95ee67d8f950bb1afd2dcd59edbe90',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

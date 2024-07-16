@@ -9,7 +9,7 @@
             "App\\Model\\": "models/",
             "App\\Routes\\": "routes/",
             "App\\Utils\\": "utils/",
-            "Stevel\\": "stevel/"
+            "Lil\\": "lil/"
         }
     },
     "require": {

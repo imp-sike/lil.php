@@ -1,6 +1,6 @@
 <?php
 use App\Model\Blog;
-use Stevel\Routes;
+use Lil\Routes;
 
 // Way to view blogs
 Routes::get('/admin/blog', function () {

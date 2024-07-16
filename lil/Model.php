@@ -1,6 +1,6 @@
 <?php
 
-namespace Stevel;
+namespace Lil;
 
 use App\Config\ConfigClass;
 

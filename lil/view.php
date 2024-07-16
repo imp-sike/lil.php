@@ -1,6 +1,6 @@
 <?php
 use App\Config\ConfigClass;
-use Stevel\Routes;
+use Lil\Routes;
 
 // This file contains all the helpers functions for displaying view
 function view($viewPath, $data = [])

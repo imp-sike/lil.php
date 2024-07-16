@@ -1,8 +1,8 @@
 <?php
-use Stevel\Routes;
+use Lil\Routes;
 
 require 'vendor/autoload.php';
-require 'stevel/view.php';
+require 'lil/view.php';
 require 'routes/web.php';
 
 

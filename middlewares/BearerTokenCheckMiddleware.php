@@ -2,7 +2,7 @@
 
 namespace App\Middleware;
 
-use Stevel\Middleware;
+use Lil\Middleware;
 
 class BearerTokenCheckMiddleware implements Middleware
 {

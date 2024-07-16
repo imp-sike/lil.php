@@ -1,6 +1,6 @@
 <?php
 
-namespace Stevel;
+namespace Lil;
 
 interface Middleware {
     public function Run();

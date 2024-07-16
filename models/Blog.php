@@ -2,7 +2,7 @@
 
 namespace App\Model;
 
-use Stevel\Model;
+use Lil\Model;
 
 class Blog extends Model {
     protected $table = "blog";
