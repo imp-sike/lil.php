@@ -68,8 +68,8 @@
     <div class="container">
         <img src="https://raw.githubusercontent.com/imp-sike/lil.php/main/logo.png" alt="LilPHP Logo" class="logo" width="150">
         <h1>Welcome to LilPHP</h1>
-        <p>A minimal PHP toolkit inspired by Laravel</p>
-        <a href="#" class="btn">Explore LilPHP</a>
+        <p>A minimal PHP toolkit for PHP Lovers</p>
+        <a href="https://github.com/imp-sike/lil.php" class="btn">Explore LilPHP</a>
     </div>
 </body>
 </html>
