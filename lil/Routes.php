@@ -43,19 +43,19 @@ class Routes
             }
 
             // Check if it's a POST request
-            if ($method === 'POST') {
-                if (session_status() === PHP_SESSION_NONE) {
-                    session_start();
-                }
+            // if ($method === 'POST') {
+            //     if (session_status() === PHP_SESSION_NONE) {
+            //         session_start();
+            //     }
 
-                // Check if CSRF token is present and valid
-                if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
-                    // Invalid CSRF token
-                    http_response_code(403); // Forbidden status
-                    echo "CSRF token validation failed";
-                    return;
-                }
-            }
+            //     // Check if CSRF token is present and valid
+            //     if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+            //         // Invalid CSRF token
+            //         http_response_code(403); // Forbidden status
+            //         echo "CSRF token validation failed";
+            //         return;
+            //     }
+            // }
 
             // Replace dynamic segments with regex patterns
             $pattern = preg_replace_callback('/{(\w+)}/', function ($matches) {
@@ -109,4 +109,37 @@ class Routes
 
         return "";
     }
+
+    public static function table()
+    {
+        echo "<table border='1' style='width:100%; text-align:left;'>";
+        echo "<tr>
+            <th>Path</th>
+            <th>Function</th>
+            <th>Name</th>
+            <th>Middlewares</th>
+            <th>Method</th>
+            <th>Action</th>
+          </tr>";
+
+        foreach (self::$routes as $route) {
+            $middlewaresList = implode(', ', array_map(function ($middleware) {
+                return is_object($middleware) ? get_class($middleware) : $middleware;
+            }, $route['middlewares']));
+
+            $functionName = is_array($route['func']) ? get_class($route['func'][0]) . '::' . $route['func'][1] : (is_object($route['func']) ? get_class($route['func']) : (is_string($route['func']) ? $route['func'] : 'Closure'));
+
+            echo "<tr>
+                <td>{$route['path']}</td>
+                <td>{$functionName}</td>
+                <td>{$route['name']}</td>
+                <td>{$middlewaresList}</td>
+                <td>{$route['method']}</td>
+                <td><a href='{$route['path']}'><button>Go to Route</button></a></td>
+              </tr>";
+        }
+
+        echo "</table>";
+    }
+
 }

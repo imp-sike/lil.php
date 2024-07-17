@@ -158,4 +158,41 @@ class Model
     }
 
 
+    public function where($conditions)
+    {
+        $whereClause = [];
+        $params = [];
+        $types = '';
+
+        foreach ($conditions as $column => $value) {
+            $whereClause[] = "$column=?";
+            $params[] = $value;
+            $types .= is_int($value) ? 'i' : 's'; // Adjust types based on data
+        }
+
+        $sql = "SELECT * FROM " . $this->table . " WHERE " . implode(' AND ', $whereClause);
+        $stmt = $this->db->prepare($sql);
+
+        if ($stmt === false) {
+            // Handle prepare error, if any
+            die('MySQL prepare error: ' . $this->db->error);
+        }
+
+        $stmt->bind_param($types, ...$params);
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+        $results_array = [];
+
+        if ($result->num_rows > 0) {
+            while ($row = $result->fetch_assoc()) {
+                $results_array[] = $row;
+            }
+        }
+
+        $stmt->close();
+
+        return $results_array;
+    }
+
 }

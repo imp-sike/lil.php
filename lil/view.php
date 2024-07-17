@@ -45,19 +45,20 @@ function mustHave($method, $validateArray)
 
 function csrf()
 {
-    // Start session if not already started
-    if (session_status() === PHP_SESSION_NONE) {
-        session_start();
-        session_unset();
-    }
+    // // Start session if not already started
+    // if (session_status() === PHP_SESSION_NONE) {
+    //     session_start();
+    //     // session_unset();
+    // }
 
-    // Generate CSRF token if not set
-    if (!isset($_SESSION['csrf_token'])) {
-        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-    }
+    // // Generate CSRF token if not set
+    // if (!isset($_SESSION['csrf_token'])) {
+    //     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    // }
 
-    // Return the CSRF token input field
-    return '<input type="hidden" name="csrf_token" value="' . $_SESSION['csrf_token'] . '">';
+    // // Return the CSRF token input field
+    // return '<input type="hidden" name="csrf_token" value="' . $_SESSION['csrf_token'] . '">';
+    return "";
 }
 
 function file_upload($upload_dir, $input_name, $allowed_types, $max_size) {
