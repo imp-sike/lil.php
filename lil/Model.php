@@ -195,4 +195,58 @@ class Model
         return $results_array;
     }
 
+
+     // Define a belongsTo relationship
+     public function belongsTo($relatedModel, $foreignKey)
+     {
+         // The related model's table and foreign key should be provided
+         $relatedTable = (new $relatedModel())->table;
+         $sql = "SELECT * FROM $relatedTable WHERE id=?";
+         $stmt = $this->db->prepare($sql);
+ 
+         if ($stmt === false) {
+             die('MySQL prepare error: ' . $this->db->error);
+         }
+ 
+         $stmt->bind_param('i', $this->{$foreignKey}); // Assuming $foreignKey is a property of the current model
+         $stmt->execute();
+         $result = $stmt->get_result();
+         $data = $result->fetch_assoc();
+         $result->free_result();
+ 
+         $stmt->close();
+ 
+         return $data;
+     }
+
+
+
+    // Define a hasMany relationship
+    public function hasMany($relatedModel, $foreignKey)
+    {
+        // The related model's table and foreign key should be provided
+        $relatedTable = (new $relatedModel())->table;
+        $sql = "SELECT * FROM $relatedTable WHERE $foreignKey=?";
+        $stmt = $this->db->prepare($sql);
+
+        if ($stmt === false) {
+            die('MySQL prepare error: ' . $this->db->error);
+        }
+
+        $stmt->bind_param('i', $this->id); // Assuming $this->id is the foreign key
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $results_array = [];
+
+        if ($result->num_rows > 0) {
+            while ($row = $result->fetch_assoc()) {
+                $results_array[] = $row;
+            }
+        }
+
+        $stmt->close();
+
+        return $results_array;
+    }
+
 }
