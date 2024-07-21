@@ -49,7 +49,8 @@ class Model
 
         if ($stmt === false) {
             // Handle prepare error, if any
-            die('MySQL prepare error: ' . $this->db->error);
+            // die('MySQL prepare error: ' . $this->db->error);
+            return false;
         }
 
         // Dynamically bind parameters
@@ -59,14 +60,21 @@ class Model
             $bindParams[] = $data[$column];
         }
         $stmt->bind_param($types, ...$bindParams);
+        $result = null;
 
-        // Execute the statement
-        $result = $stmt->execute();
+        try {
+            // Execute the statement
+            $result = $stmt->execute();
+        } catch (\mysqli_sql_exception $e) {
+            $stmt->close();
+            return false;
+        }
 
         // Check for errors
         if ($result === false) {
             // Handle execute error, if any
-            die('MySQL execute error: ' . $stmt->error);
+            // die('MySQL execute error: ' . $stmt->error);
+            return false;
         }
 
         // Close statement
@@ -196,28 +204,28 @@ class Model
     }
 
 
-     // Define a belongsTo relationship
-     public function belongsTo($relatedModel, $foreignKey)
-     {
-         // The related model's table and foreign key should be provided
-         $relatedTable = (new $relatedModel())->table;
-         $sql = "SELECT * FROM $relatedTable WHERE id=?";
-         $stmt = $this->db->prepare($sql);
- 
-         if ($stmt === false) {
-             die('MySQL prepare error: ' . $this->db->error);
-         }
- 
-         $stmt->bind_param('i', $this->{$foreignKey}); // Assuming $foreignKey is a property of the current model
-         $stmt->execute();
-         $result = $stmt->get_result();
-         $data = $result->fetch_assoc();
-         $result->free_result();
- 
-         $stmt->close();
- 
-         return $data;
-     }
+    // Define a belongsTo relationship
+    public function belongsTo($relatedModel, $foreignKey)
+    {
+        // The related model's table and foreign key should be provided
+        $relatedTable = (new $relatedModel())->table;
+        $sql = "SELECT * FROM $relatedTable WHERE id=?";
+        $stmt = $this->db->prepare($sql);
+
+        if ($stmt === false) {
+            die('MySQL prepare error: ' . $this->db->error);
+        }
+
+        $stmt->bind_param('i', $this->{$foreignKey}); // Assuming $foreignKey is a property of the current model
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $data = $result->fetch_assoc();
+        $result->free_result();
+
+        $stmt->close();
+
+        return $data;
+    }
 
 
 

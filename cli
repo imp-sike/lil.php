@@ -8,6 +8,8 @@ $command = $argv[1];
 $name = $argv[2];
 $table = strtolower($argv[2]);
 
+
+
 switch ($command) {
     case 'make:model':
         $content = "<?php
@@ -61,7 +63,17 @@ class {$name}Middleware implements Middleware {
         echo "Middleware {$name} created successfully.\n";
         break;
 
+    case 'make:crud':
+        generateCrud($name);
+        break;
+
+
     default:
         echo "Command not recognized.\n";
         exit(1);
+}
+
+
+function generateCrud($name) {
+    echo $name;
 }
