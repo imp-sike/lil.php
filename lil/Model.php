@@ -172,10 +172,23 @@ class Model
         $params = [];
         $types = '';
 
-        foreach ($conditions as $column => $value) {
-            $whereClause[] = "$column=?";
-            $params[] = $value;
-            $types .= is_int($value) ? 'i' : 's'; // Adjust types based on data
+        foreach ($conditions as $column => $condition) {
+            if (is_array($condition)) {
+                $operator = $condition[0];
+                
+                if (strtoupper($operator) === 'IS NULL' || strtoupper($operator) === 'IS NOT NULL') {
+                    $whereClause[] = "$column $operator";
+                } else {
+                    $value = $condition[1];
+                    $whereClause[] = "$column $operator ?";
+                    $params[] = $value;
+                    $types .= is_int($value) ? 'i' : 's'; // Adjust types based on data
+                }
+            } else {
+                $whereClause[] = "$column=?";
+                $params[] = $condition;
+                $types .= is_int($condition) ? 'i' : 's'; // Adjust types based on data
+            }
         }
 
         $sql = "SELECT * FROM " . $this->table . " WHERE " . implode(' AND ', $whereClause);
@@ -186,7 +199,10 @@ class Model
             die('MySQL prepare error: ' . $this->db->error);
         }
 
-        $stmt->bind_param($types, ...$params);
+        if (!empty($params)) {
+            $stmt->bind_param($types, ...$params);
+        }
+
         $stmt->execute();
 
         $result = $stmt->get_result();
@@ -202,6 +218,7 @@ class Model
 
         return $results_array;
     }
+
 
 
     // Define a belongsTo relationship
