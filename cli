@@ -21,7 +21,7 @@ use Lil\Model;
 class {$name} extends Model {
     protected \$table = '{$table}';
 
-    protected \$fillable = [];
+    protected \$columns = [];
 }
 
 ";
