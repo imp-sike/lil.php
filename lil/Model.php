@@ -85,11 +85,15 @@ class Model
     }
 
     // Add a WHERE clause
-    public function where($column, $operator, $value)
+    public function where($column, $operator, $value = null)
     {
-        $this->query .= " WHERE $column $operator ?";
-        $this->bindings[] = $value;
-        $this->types .= 's'; // Assuming all data is of type string
+        if (is_null($value) && ($operator === 'IS NULL' || $operator === 'IS NOT NULL')) {
+            $this->query .= " WHERE $column $operator";
+        } else {
+            $this->query .= " WHERE $column $operator ?";
+            $this->bindings[] = $value;
+            $this->types .= 's'; // Assuming all data is of type string
+        }
         return $this;
     }
 
@@ -191,7 +195,7 @@ class Model
             return $this->create($this->toArray());
         }
     }
-    
+
     public function belongsTo($relatedModel, $foreignKey = 'user_id')
     {
         $relatedModelInstance = new $relatedModel();
