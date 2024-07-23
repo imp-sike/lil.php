@@ -6,272 +6,229 @@ use App\Config\ConfigClass;
 
 class Model
 {
-
     protected $table;
-    protected $fillable;
-
+    protected $columns = [];
     private $db;
+    protected $id;
+
+    protected $query;
+    protected $bindings = [];
+    protected $types = '';
 
     public function __construct()
     {
         $this->db = new \mysqli(ConfigClass::$db_host, ConfigClass::$db_uname, ConfigClass::$db_pass, ConfigClass::$db_name);
-        // connection error
+
         if ($this->db->connect_error) {
             die("Connection failed: " . $this->db->connect_error);
         }
+
+        $this->query = "SELECT * FROM {$this->table}";
     }
 
-    public function all()
+    // Create a new record
+    public function create(array $data)
     {
-        // SELECT * FROM db_name
-        $sql = "SELECT * FROM " . $this->table;
-        $result = $this->db->query($sql);
-        $results_array = []; // Initialize the array
+        $columns = implode(', ', array_keys($data));
+        $placeholders = implode(', ', array_fill(0, count($data), '?'));
+        $sql = "INSERT INTO {$this->table} ($columns) VALUES ($placeholders)";
 
-        if ($result->num_rows > 0) {
-            // Fetch all results into an associative array
-            while ($row = $result->fetch_assoc()) {
-                $results_array[] = $row;
-            }
-        }
-
-        return $results_array;
-    }
-
-    public function insert($data)
-    {
-        $columns = implode(', ', $this->fillable);
-        $placeholders = implode(', ', array_fill(0, count($this->fillable), '?'));
-
-        // Prepare the SQL statement
-        $sql = "INSERT INTO " . $this->table . " ($columns) VALUES ($placeholders)";
         $stmt = $this->db->prepare($sql);
-
-        if ($stmt === false) {
-            // Handle prepare error, if any
-            // die('MySQL prepare error: ' . $this->db->error);
-            return false;
-        }
-
-        // Dynamically bind parameters
-        $types = str_repeat('s', count($this->fillable)); // Assuming all parameters are strings, adjust as needed
-        $bindParams = [];
-        foreach ($this->fillable as $column) {
-            $bindParams[] = $data[$column];
-        }
-        $stmt->bind_param($types, ...$bindParams);
-        $result = null;
-
-        try {
-            // Execute the statement
-            $result = $stmt->execute();
-        } catch (\mysqli_sql_exception $e) {
-            $stmt->close();
-            return false;
-        }
-
-        // Check for errors
-        if ($result === false) {
-            // Handle execute error, if any
-            // die('MySQL execute error: ' . $stmt->error);
-            return false;
-        }
-
-        // Close statement
-        $stmt->close();
-
-        return $result;
+        $types = str_repeat('s', count($data)); // Assuming all data is of type string
+        $values = array_values($data);
+        $stmt->bind_param($types, ...$values);
+        return $stmt->execute();
     }
 
-
-    public function update($id, $data)
+    // Read a record by primary key
+    public static function read($id)
     {
-        $setClause = "";
-        $params = [];
-
-        foreach ($this->fillable as $index => $fillable) {
-            if (isset($data[$fillable])) {
-                $setClause .= ($index > 0 ? ', ' : '') . "$fillable=?";
-                $params[] = $data[$fillable];
-            }
-        }
-
-        // Add the ID as the last parameter for the WHERE clause
-        $params[] = $id;
-
-        // Prepare the SQL statement
-        $sql = "UPDATE " . $this->table . " SET " . $setClause . " WHERE id=?";
-        $stmt = $this->db->prepare($sql);
-
-        if ($stmt === false) {
-            // Handle prepare error, if any
-            die('MySQL prepare error: ' . $this->db->error);
-        }
-
-        // Dynamically bind parameters
-        $types = str_repeat('s', count($params)); // Assuming all parameters are strings, adjust as needed
-        $stmt->bind_param($types, ...$params);
-
-        // Execute the statement
-        $result = $stmt->execute();
-
-        // Check for errors
-        if ($result === false) {
-            // Handle execute error, if any
-            die('MySQL execute error: ' . $stmt->error);
-        }
-
-        // Close statement
-        $stmt->close();
-
-        return $result;
-    }
-
-
-    public function withId($id)
-    {
-        // Assuming $this->db is your MySQLi database connection
-        $sql = "SELECT * FROM " . $this->table . " WHERE id=?";
-        $stmt = $this->db->prepare($sql);
-        if ($stmt === false) {
-            // Handle prepare error, if any
-            die('MySQL prepare error: ' . $this->db->error);
-        }
+        $instance = new static();
+        $sql = "SELECT * FROM {$instance->table} WHERE id = ?";
+        $stmt = $instance->db->prepare($sql);
         $stmt->bind_param('i', $id);
+        $instance->id = $id;
         $stmt->execute();
-        $result = $stmt->get_result();
-        $data = $result->fetch_assoc();
-        $result->free_result();
-        return $data; // Return fetched data or null if not found
+        return $stmt->get_result()->fetch_object(static::class);
     }
 
+    // Update a record by primary key
+    public function update($id, array $data)
+    {
+        $sets = implode(' = ?, ', array_keys($data)) . ' = ?';
+        $sql = "UPDATE {$this->table} SET $sets WHERE id = ?";
+
+        $stmt = $this->db->prepare($sql);
+        $types = str_repeat('s', count($data)) . 'i'; // Adding 'i' for integer id
+        $values = array_values($data);
+        $values[] = $id; // Append id to values
+        $stmt->bind_param($types, ...$values);
+        return $stmt->execute();
+    }
+
+    // Delete a record by primary key
     public function delete($id)
     {
-        // Assuming $this->db is your MySQLi database connection
-        $sql = "DELETE FROM " . $this->table . " WHERE id=?";
+        $sql = "DELETE FROM {$this->table} WHERE id = ?";
         $stmt = $this->db->prepare($sql);
-        if ($stmt === false) {
-            // Handle prepare error, if any
-            die('MySQL prepare error: ' . $this->db->error);
-        }
         $stmt->bind_param('i', $id);
-        $stmt->execute();
-
-        // Check if deletion was successful
-        if ($stmt->affected_rows > 0) {
-            return true; // Return true on successful deletion
-        } else {
-            return false; // Return false if no rows were affected (no deletion occurred)
-        }
+        return $stmt->execute();
     }
 
-
-    public function where($conditions)
+    // Retrieve all records
+    public static function all()
     {
-        $whereClause = [];
-        $params = [];
-        $types = '';
+        $instance = new static();
+        $sql = "SELECT * FROM {$instance->table}";
+        $result = $instance->db->query($sql);
+        return $result->fetch_all(MYSQLI_ASSOC);
+    }
 
-        foreach ($conditions as $column => $condition) {
-            if (is_array($condition)) {
-                $operator = $condition[0];
-                
-                if (strtoupper($operator) === 'IS NULL' || strtoupper($operator) === 'IS NOT NULL') {
-                    $whereClause[] = "$column $operator";
-                } else {
-                    $value = $condition[1];
-                    $whereClause[] = "$column $operator ?";
-                    $params[] = $value;
-                    $types .= is_int($value) ? 'i' : 's'; // Adjust types based on data
-                }
-            } else {
-                $whereClause[] = "$column=?";
-                $params[] = $condition;
-                $types .= is_int($condition) ? 'i' : 's'; // Adjust types based on data
-            }
+    // Add a WHERE clause
+    public function where($column, $operator, $value)
+    {
+        $this->query .= " WHERE $column $operator ?";
+        $this->bindings[] = $value;
+        $this->types .= 's'; // Assuming all data is of type string
+        return $this;
+    }
+
+    // Add an ORDER BY clause
+    public function orderBy($column, $direction = 'ASC')
+    {
+        $this->query .= " ORDER BY $column $direction";
+        return $this;
+    }
+
+    // Limit the number of results
+    public function limit($number)
+    {
+        $this->query .= " LIMIT ?";
+        $this->bindings[] = $number;
+        $this->types .= 'i';
+        return $this;
+    }
+
+    // Offset the results
+    public function offset($number)
+    {
+        $this->query .= " OFFSET ?";
+        $this->bindings[] = $number;
+        $this->types .= 'i';
+        return $this;
+    }
+
+    // Group results by a column
+    public function groupBy($column)
+    {
+        $this->query .= " GROUP BY $column";
+        return $this;
+    }
+
+    // Execute the built query
+    public function get()
+    {
+        $stmt = $this->db->prepare($this->query);
+        if ($stmt === false) {
+            throw new \Exception("Unable to prepare statement: " . $this->db->error);
         }
 
-        $sql = "SELECT * FROM " . $this->table . " WHERE " . implode(' AND ', $whereClause);
-        $stmt = $this->db->prepare($sql);
+        if (!empty($this->bindings)) {
+            $stmt->bind_param($this->types, ...$this->bindings);
+        }
 
+        $stmt->execute();
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    }
+
+    // Aggregation methods
+    public function count()
+    {
+        $sql = "SELECT COUNT(*) as count FROM {$this->table}";
+        $result = $this->db->query($sql);
+        return $result->fetch_assoc()['count'];
+    }
+
+    public function sum($column)
+    {
+        $sql = "SELECT SUM($column) as sum FROM {$this->table}";
+        $result = $this->db->query($sql);
+        return $result->fetch_assoc()['sum'];
+    }
+
+    public function avg($column)
+    {
+        $sql = "SELECT AVG($column) as avg FROM {$this->table}";
+        $result = $this->db->query($sql);
+        return $result->fetch_assoc()['avg'];
+    }
+
+    public function min($column)
+    {
+        $sql = "SELECT MIN($column) as min FROM {$this->table}";
+        $result = $this->db->query($sql);
+        return $result->fetch_assoc()['min'];
+    }
+
+    public function max($column)
+    {
+        $sql = "SELECT MAX($column) as max FROM {$this->table}";
+        $result = $this->db->query($sql);
+        return $result->fetch_assoc()['max'];
+    }
+
+    // Other utility methods
+    public function toArray()
+    {
+        return get_object_vars($this);
+    }
+
+    public function save()
+    {
+        if (isset($this->id)) {
+            return $this->update($this->id, $this->toArray());
+        } else {
+            return $this->create($this->toArray());
+        }
+    }
+    
+    public function belongsTo($relatedModel, $foreignKey = 'user_id')
+    {
+        $relatedModelInstance = new $relatedModel();
+        $sql = "SELECT * FROM {$relatedModelInstance->table} WHERE id = ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bind_param('i', $this->{$foreignKey});
+        $stmt->execute();
+        return $stmt->get_result()->fetch_object($relatedModel);
+    }
+
+    public function hasMany($relatedModel, $foreignKey = 'user_id')
+    {
+        $relatedModelInstance = new $relatedModel();
+        $sql = "SELECT * FROM {$relatedModelInstance->table} WHERE {$foreignKey} = ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bind_param('i', $this->id);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    }
+
+    // Execute custom prepared queries
+    public function query($sql, $params = [], $types = '')
+    {
+        $stmt = $this->db->prepare($sql);
         if ($stmt === false) {
-            // Handle prepare error, if any
-            die('MySQL prepare error: ' . $this->db->error);
+            throw new \Exception("Unable to prepare statement: " . $this->db->error);
         }
 
         if (!empty($params)) {
+            if (empty($types)) {
+                // Default to assuming all params are strings if no types are specified
+                $types = str_repeat('s', count($params));
+            }
             $stmt->bind_param($types, ...$params);
         }
 
         $stmt->execute();
-
-        $result = $stmt->get_result();
-        $results_array = [];
-
-        if ($result->num_rows > 0) {
-            while ($row = $result->fetch_assoc()) {
-                $results_array[] = $row;
-            }
-        }
-
-        $stmt->close();
-
-        return $results_array;
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
-
-
-
-    // Define a belongsTo relationship
-    public function belongsTo($relatedModel, $foreignKey)
-    {
-        // The related model's table and foreign key should be provided
-        $relatedTable = (new $relatedModel())->table;
-        $sql = "SELECT * FROM $relatedTable WHERE id=?";
-        $stmt = $this->db->prepare($sql);
-
-        if ($stmt === false) {
-            die('MySQL prepare error: ' . $this->db->error);
-        }
-
-        $stmt->bind_param('i', $this->{$foreignKey}); // Assuming $foreignKey is a property of the current model
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $data = $result->fetch_assoc();
-        $result->free_result();
-
-        $stmt->close();
-
-        return $data;
-    }
-
-
-
-    // Define a hasMany relationship
-    public function hasMany($relatedModel, $foreignKey)
-    {
-        // The related model's table and foreign key should be provided
-        $relatedTable = (new $relatedModel())->table;
-        $sql = "SELECT * FROM $relatedTable WHERE $foreignKey=?";
-        $stmt = $this->db->prepare($sql);
-
-        if ($stmt === false) {
-            die('MySQL prepare error: ' . $this->db->error);
-        }
-
-        $stmt->bind_param('i', $this->id); // Assuming $this->id is the foreign key
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $results_array = [];
-
-        if ($result->num_rows > 0) {
-            while ($row = $result->fetch_assoc()) {
-                $results_array[] = $row;
-            }
-        }
-
-        $stmt->close();
-
-        return $results_array;
-    }
-
 }

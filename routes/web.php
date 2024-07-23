@@ -1,7 +1,6 @@
 <?php
 use Lil\Routes;
 
-
-Routes::get("/", function () {
+Routes::get("/", function() {
     return view('index');
 }, 'index');
